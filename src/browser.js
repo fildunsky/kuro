@@ -1,5 +1,6 @@
 "use strict";
 const { ipcRenderer: ipc, shell } = require("electron");
+const accent = require("./accent");
 const layout = require("./layout");
 const mode = require("./mode");
 const nav = require("./nav");
@@ -149,11 +150,14 @@ ipc.on("zoom-reset", () => nav.zoomReset());
 
 document.addEventListener("keydown", list => nav.jumpToList(list));
 
+ipc.on("toggle-list-accents", () => accent.apply());
+
 document.addEventListener("DOMContentLoaded", () => {
   nav.zoomRestore();
 
   mode.restore();
   mode.autoNight();
+  accent.apply();
   layout.watchSidebar();
   layout.trackTitle();
   layout.closeSettingsOnOutsideClick();

@@ -91,6 +91,16 @@ module.exports = [
     },
   },
   {
+    label: t("tray.followListColors"),
+    type: "checkbox",
+    checked: settings.get("listAccents"),
+    click(item) {
+      win.appear();
+      settings.set("listAccents", item.checked);
+      win.activate("toggle-list-accents");
+    },
+  },
+  {
     type: "separator",
   },
   {

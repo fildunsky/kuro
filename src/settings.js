@@ -12,6 +12,7 @@ const store = new Store({
     hideTray: false,
     lastWindowState: {},
     launchMinimized: false,
+    listAccents: true,
     menuBarHidden: false,
     mode: {
       custom: false,
@@ -40,6 +41,7 @@ store.set({
     height: store.get("lastWindowState.height"),
   },
   launchMinimized: store.get("launchMinimized", false),
+  listAccents: store.get("listAccents", true),
   menuBarHidden: store.get("menuBarHidden", false),
   mode: {
     custom: store.get("mode.custom", false),

@@ -78,6 +78,16 @@ module.exports = {
       },
     },
     {
+      label: t("menu.view.followListColors"),
+      type: "checkbox",
+      checked: settings.get("listAccents"),
+      accelerator: setAcc("toggle-list-accents", "CmdorCtrl+Shift+L"),
+      click(item) {
+        settings.set("listAccents", item.checked);
+        activate("toggle-list-accents");
+      },
+    },
+    {
       label: t("menu.view.reopenLastList"),
       type: "checkbox",
       checked: settings.get("reopenLastList"),
