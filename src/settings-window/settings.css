@@ -34,6 +34,11 @@
   box-sizing: border-box;
 }
 
+/* Native form controls in the desktop accent (set on :root by settings.js) */
+:root {
+  accent-color: var(--accent);
+}
+
 html,
 body {
   height: 100%;

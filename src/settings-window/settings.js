@@ -462,6 +462,21 @@
     $(".tabs").setAttribute("aria-label", T.title);
   }
 
+  // Desktop accent colour for form controls and the active tab; the CSS
+  // fallback stays in place when the desktop does not publish one.
+  function applyAccent(hex) {
+    if (!/^#[\da-f]{6}$/i.test(hex || "")) {
+      return;
+    }
+
+    const [r, g, b] = [1, 3, 5].map(i => Number.parseInt(hex.slice(i, i + 2), 16) / 255);
+    const luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+    const { style } = document.documentElement;
+    style.setProperty("--accent", hex);
+    style.setProperty("--focus", hex);
+    style.setProperty("--accent-text", luminance > 0.55 ? "#1F1F1F" : "#FFFFFF");
+  }
+
   async function boot() {
     try {
       const [locale, table, state] = await Promise.all([
@@ -471,6 +486,7 @@
       ]);
       T = table;
       applyStrings(locale);
+      applyAccent(state.accent);
       initTabs();
       renderGroups(state);
       renderTheme(state.theme);

@@ -1,4 +1,5 @@
 "use strict";
+const { execFile } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const electron = require("electron");
@@ -216,6 +217,67 @@ const LIVE = {
   },
 };
 
+// ---- system accent colour ---------------------------------------------------
+// The settings window draws its checkboxes, selects and the active tab in the
+// desktop's accent colour. Linux desktops publish it through the
+// xdg-desktop-portal Settings interface (GNOME 47+, KDE Plasma 6); older
+// GNOME only has the named gsettings key. Resolves to "#RRGGBB" or null.
+
+// GNOME's palette for the named `accent-color` key
+const GNOME_ACCENTS = {
+  blue: "#3584E4",
+  teal: "#2190A4",
+  green: "#3A944A",
+  yellow: "#C88800",
+  orange: "#ED5B00",
+  red: "#E62D42",
+  pink: "#D56199",
+  purple: "#9141AC",
+  slate: "#6F8396",
+};
+
+const run = (command, args) => new Promise(resolve => {
+  try {
+    execFile(command, args, { timeout: 1500 }, (error, stdout) => {
+      resolve(error ? "" : String(stdout));
+    });
+  } catch {
+    resolve("");
+  }
+});
+
+const toHex = channel => Math.round(Math.min(1, Math.max(0, channel)) * 255)
+  .toString(16)
+  .padStart(2, "0")
+  .toUpperCase();
+
+async function systemAccent() {
+  if (!is.linux) {
+    return null;
+  }
+
+  // (<(0.568..., 0.254..., 0.674...)>,)
+  const portal = await run("gdbus", [
+    "call",
+    "--session",
+    "--dest",
+    "org.freedesktop.portal.Desktop",
+    "--object-path",
+    "/org/freedesktop/portal/desktop",
+    "--method",
+    "org.freedesktop.portal.Settings.ReadOne",
+    "org.freedesktop.appearance",
+    "accent-color",
+  ]);
+  const rgb = portal.match(/\(([\d.]+),\s*([\d.]+),\s*([\d.]+)\)/);
+  if (rgb) {
+    return `#${toHex(Number(rgb[1]))}${toHex(Number(rgb[2]))}${toHex(Number(rgb[3]))}`;
+  }
+
+  const named = await run("gsettings", ["get", "org.gnome.desktop.interface", "accent-color"]);
+  return GNOME_ACCENTS[named.trim().replaceAll("'", "")] || null;
+}
+
 function setSetting(key, value) {
   if (typeof key !== "string") {
     throw new TypeError("Invalid setting");
@@ -351,11 +413,12 @@ function registerHandlers() {
 
   handle("get-locale", () => locale());
   handle("get-strings", () => strings.get(locale()));
-  handle("get-state", () => {
+  handle("get-state", async () => {
     const { data } = readLocalConfig();
     return {
       locale: locale(),
       platform: process.platform,
+      accent: await systemAccent(),
       configPath: file.localConfig,
       settings: currentSettings(),
       theme: themeEntries(data),
