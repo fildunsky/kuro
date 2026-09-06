@@ -1,5 +1,6 @@
 "use strict";
 const fs = require("node:fs");
+const nodePath = require("node:path");
 const defaultConfig = require("./configs");
 const file = require("./file");
 
@@ -53,7 +54,39 @@ class Config {
     return result;
   }
 
+  // Move a pre-existing ~/.kuro.json into the XDG/userData location
+  _migrateLegacyConfig(path) {
+    const legacy = file.legacyLocalConfig;
+
+    if (legacy === path || fs.existsSync(path) || !fs.existsSync(legacy)) {
+      return;
+    }
+
+    try {
+      fs.mkdirSync(nodePath.dirname(path), { recursive: true });
+      try {
+        fs.renameSync(legacy, path);
+      } catch {
+        // Cross-device (e.g. sandboxed home) - copy, then remove the original
+        fs.copyFileSync(legacy, path);
+        fs.unlinkSync(legacy);
+      }
+
+      log(`Migrated local config from ${legacy} to ${path}`);
+    } catch (error) {
+      log(error);
+    }
+  }
+
   _ensureLocalConfig(path) {
+    this._migrateLegacyConfig(path);
+
+    try {
+      fs.mkdirSync(nodePath.dirname(path), { recursive: true });
+    } catch (error) {
+      log(error);
+    }
+
     const data = fs.existsSync(path)
       ? this._updateConfig(this._local)
       : this._default;
