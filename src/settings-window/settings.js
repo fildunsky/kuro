@@ -136,13 +136,52 @@
       $(`#panel-${tab.dataset.tab}`).hidden = !active;
     }
 
+    moveTabIndicator();
+
     try {
       localStorage.setItem("kuro-settings-tab", name);
     } catch {}
   }
 
+  // Slide the pill behind the active tab. The first placement happens without
+  // a transition (the "ready" class enables it), so the pill does not fly in
+  // from the corner when the window opens.
+  function moveTabIndicator() {
+    const indicator = $(".tab-indicator");
+    const tab = document.querySelector(".tab[aria-selected='true']");
+    if (!indicator || !tab) {
+      return;
+    }
+
+    const navRect = indicator.parentElement.getBoundingClientRect();
+    const rect = tab.getBoundingClientRect();
+    indicator.style.width = `${rect.width}px`;
+    indicator.style.height = `${rect.height}px`;
+    indicator.style.opacity = "1";
+    indicator.style.transform = `translate3d(${rect.left - navRect.left}px, ${rect.top - navRect.top}px, 0)`;
+    if (!indicator.classList.contains("ready")) {
+      indicator.getBoundingClientRect();
+      indicator.classList.add("ready");
+    }
+  }
+
+  // Ring flash on the control whose value was just saved
+  function flash(node) {
+    if (!node) {
+      return;
+    }
+
+    node.classList.remove("highlight-flash");
+    node.getBoundingClientRect();
+    node.classList.add("highlight-flash");
+    const done = () => node.classList.remove("highlight-flash");
+    node.addEventListener("animationend", done, { once: true });
+    setTimeout(done, 1400);
+  }
+
   function initTabs() {
     const tabs = [...document.querySelectorAll(".tab")];
+    window.addEventListener("resize", moveTabIndicator);
     for (const tab of tabs) {
       tab.addEventListener("click", () => selectTab(tab.dataset.tab));
       tab.addEventListener("keydown", event => {
@@ -204,6 +243,7 @@
         const result = await api.setSetting(item.key, input.checked);
         input.checked = Boolean(result.value);
         saved(result.restart);
+        flash(input.closest(".row"));
       } catch (error) {
         input.checked = !input.checked;
         failed(error);
@@ -246,6 +286,7 @@
         const result = await api.setSetting("updateCheckPeriod", select.value);
         select.value = result.value;
         saved(result.restart);
+        flash(select);
       } catch (error) {
         failed(error);
       }
@@ -292,6 +333,7 @@
         }
 
         saved(true);
+        flash(input.closest(".color"));
       } catch (error) {
         input.value = entry.hex || entry.value;
         failed(error);
@@ -343,6 +385,7 @@
         input.value = result.value;
         input.setAttribute("aria-invalid", "false");
         saved(true);
+        flash(input);
       } catch (error) {
         input.setAttribute("aria-invalid", "true");
         input.value = last;

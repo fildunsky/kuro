@@ -28,6 +28,17 @@ const CLOSE_ICON = "<svg viewBox=\"0 0 12 12\" fill=\"none\" stroke=\"currentCol
 
 const TABS = ["color", "scenes"];
 
+// Ring flash on the control that was just clicked (restarted if still running)
+const flash = node => {
+  node.classList.remove("kuro-highlight-flash");
+  node.getBoundingClientRect();
+  node.classList.add("kuro-highlight-flash");
+  const done = () => node.classList.remove("kuro-highlight-flash");
+  node.addEventListener("animationend", done, { once: true });
+  // No animationend arrives when animations are off or the window is hidden
+  setTimeout(done, 1400);
+};
+
 const element = (tag, className, text) => {
   const node = document.createElement(tag);
   if (className) {
@@ -92,6 +103,7 @@ class ThemePanel {
     // (no requestAnimationFrame: it does not run while the window is occluded)
     this._root.getBoundingClientRect();
     this._root.classList.add("is-open");
+    this._moveTabIndicator();
 
     document.addEventListener("keydown", this._onKey, true);
     document.addEventListener("mousedown", this._onMouseDown, true);
@@ -219,6 +231,10 @@ class ThemePanel {
       sections[id] = section;
     }
 
+    const indicator = element("div", "kuro-theme-pane__tab-indicator");
+    indicator.setAttribute("aria-hidden", "true");
+    tabs.append(indicator);
+
     const swatches = [];
     for (const light of [false, true]) {
       sections.color.append(element("p", "kuro-theme-pane__label", t(light ? "theme.color.light" : "theme.color.solid")));
@@ -229,7 +245,11 @@ class ThemePanel {
         swatch.setAttribute("aria-label", swatch.title);
         swatch.style.setProperty("--swatch", light ? color.light : color.solid);
         swatch.style.setProperty("--swatch-ring", color.solid);
-        swatch.addEventListener("click", () => background.set({ kind: "color", value: color.id, light }));
+        swatch.style.setProperty("--kuro-flash", color.solid);
+        swatch.addEventListener("click", () => {
+          background.set({ kind: "color", value: color.id, light });
+          flash(swatch);
+        });
         swatch.dataset.theme = `color:${color.id}:${light}`;
         row.append(swatch);
         swatches.push(swatch);
@@ -245,7 +265,10 @@ class ThemePanel {
       tile.dataset.theme = `scene:${scene.id}`;
       tile.title = t(`theme.scene.${scene.id}`);
       tile.append(element("span", "kuro-theme-pane__scene-label", tile.title));
-      tile.addEventListener("click", () => background.set({ kind: "scene", value: scene.id }));
+      tile.addEventListener("click", () => {
+        background.set({ kind: "scene", value: scene.id });
+        flash(tile);
+      });
       grid.append(tile);
       swatches.push(tile);
     }
@@ -254,7 +277,10 @@ class ThemePanel {
 
     const none = button("kuro-theme-pane__none", t("theme.none"));
     none.dataset.theme = "none";
-    none.addEventListener("click", () => background.set(null));
+    none.addEventListener("click", () => {
+      background.set(null);
+      flash(none);
+    });
     swatches.push(none);
 
     body.append(tabs, sections.color, sections.scenes, none);
@@ -267,7 +293,7 @@ class ThemePanel {
 
     this._root = root;
     this._parts = {
-      list, noList, body, tabButtons, sections, swatches,
+      list, noList, body, tabButtons, sections, swatches, indicator,
     };
     this._selectTab(this._tab);
   }
@@ -280,6 +306,26 @@ class ThemePanel {
       tabButtons[tab].classList.toggle("is-active", active);
       tabButtons[tab].setAttribute("aria-selected", String(active));
       sections[tab].hidden = !active;
+    }
+
+    this._moveTabIndicator();
+  }
+
+  // Slide the underline to the active tab. The first placement is applied
+  // without a transition (is-ready enables it afterwards), so the line does
+  // not grow out of the corner when the pane opens.
+  _moveTabIndicator() {
+    const { tabButtons, indicator } = this._parts;
+    const tab = tabButtons[this._tab];
+    if (!tab || !tab.offsetWidth) {
+      return;
+    }
+
+    indicator.style.width = `${tab.offsetWidth}px`;
+    indicator.style.transform = `translateX(${tab.offsetLeft}px)`;
+    if (!indicator.classList.contains("is-ready")) {
+      indicator.getBoundingClientRect();
+      indicator.classList.add("is-ready");
     }
   }
 
@@ -305,6 +351,8 @@ class ThemePanel {
     for (const swatch of swatches) {
       swatch.classList.toggle("is-active", swatch.dataset.theme === activeId);
     }
+
+    this._moveTabIndicator();
   }
 }
 

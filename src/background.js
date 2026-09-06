@@ -16,6 +16,8 @@ class Background {
     this._observer = null;
     this._scheduled = false;
     this._listeners = new Set();
+    this._lastKey = undefined;
+    this._switchTimer = null;
   }
 
   // Stable key of the list on screen: To-Do puts the list id on the active
@@ -68,6 +70,13 @@ class Background {
   }
 
   apply() {
+    const key = this.currentListKey();
+    if (key && this._lastKey !== undefined && key !== this._lastKey) {
+      this._animateListSwitch();
+    }
+
+    this._lastKey = key;
+
     const theme = this.current();
     const html = document.documentElement;
     const { dataset, style } = html;
@@ -104,6 +113,17 @@ class Background {
     for (const listener of this._listeners) {
       listener(theme);
     }
+  }
+
+  // Let src/style/motion.css bounce the list column's content in on a list
+  // change (the class is removed again once the animation is over).
+  _animateListSwitch() {
+    const html = document.documentElement;
+    html.classList.remove("kuro-list-switch");
+    html.getBoundingClientRect();
+    html.classList.add("kuro-list-switch");
+    clearTimeout(this._switchTimer);
+    this._switchTimer = setTimeout(() => html.classList.remove("kuro-list-switch"), 450);
   }
 
   set(theme) {

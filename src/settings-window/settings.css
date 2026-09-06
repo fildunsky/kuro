@@ -11,6 +11,8 @@
   --danger: #A80000;
   --focus: #1E9484;
   --radius: 6px;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.22, 1.5, 0.36, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -60,36 +62,89 @@ select {
   outline-offset: 1px;
 }
 
-/* Tabs */
+/* Tabs: a pill slides behind the active tab (positioned by settings.js) */
 .tabs {
+  position: relative;
   display: flex;
-  gap: 2px;
-  padding: 8px 12px 0;
+  gap: 4px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
 }
 
 .tab {
-  padding: 7px 14px;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: var(--radius) var(--radius) 0 0;
+  position: relative;
+  z-index: 1;
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius);
   background: none;
   color: var(--text-muted);
   cursor: pointer;
+  transition: color 0.18s ease-out;
 }
 
 .tab:hover {
-  background: var(--bg-hover);
   color: var(--text);
 }
 
 .tab[aria-selected="true"] {
-  border-color: var(--border);
-  background: var(--bg);
-  color: var(--text);
-  margin-bottom: -1px;
+  color: var(--accent-text);
   font-weight: 600;
+}
+
+.tab-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: center;
+  will-change: transform, width, height;
+}
+
+.tab-indicator.ready {
+  transition:
+    transform 0.55s var(--ease-spring),
+    width 0.32s var(--ease),
+    height 0.32s var(--ease),
+    opacity 0.15s ease-out;
+}
+
+/* Motion (same language as zashboard) */
+@keyframes bounce-in {
+  from {
+    opacity: 0.5;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes highlight-flash {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 100%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
+
+.highlight-flash {
+  border-radius: var(--radius);
+  animation: highlight-flash 0.6s ease-out 2;
 }
 
 /* Panels */
@@ -97,6 +152,10 @@ main {
   flex: 1;
   overflow-y: auto;
   padding: 12px 20px 16px;
+}
+
+.panel {
+  animation: bounce-in 0.3s var(--ease) both;
 }
 
 .section-title {
@@ -128,6 +187,12 @@ main {
 
 .row-check {
   cursor: pointer;
+  border-radius: var(--radius);
+  transition: background-color 0.2s ease-out;
+}
+
+.row-check:hover {
+  background: var(--bg-hover);
 }
 
 /* Native form controls: default size and platform accent, no custom drawing */
@@ -166,6 +231,7 @@ main {
 select,
 input[type="text"] {
   font: inherit;
+  transition: border-color 0.2s ease-out, background-color 0.2s ease-out, color 0.2s ease-out;
 }
 
 .hint {
@@ -290,6 +356,11 @@ footer {
   margin: 0 0 4px;
   font-size: 12px;
   color: var(--text-muted);
+  transition: opacity 0.2s ease-out;
+}
+
+.status:empty {
+  opacity: 0;
 }
 
 .status.error {
@@ -323,6 +394,12 @@ footer {
   border-radius: var(--radius);
   background: var(--bg);
   cursor: pointer;
+  transition: background-color 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out, transform 0.2s var(--ease);
+}
+
+.buttons button:active,
+.actions button:active {
+  transform: scale(0.97);
 }
 
 .buttons button:hover,
@@ -338,4 +415,13 @@ footer {
 
 .hint-footer {
   margin: 8px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

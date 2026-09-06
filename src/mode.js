@@ -30,7 +30,16 @@ class Mode {
     this._schemeQuery?.addEventListener("change", () => this.autoNight());
   }
 
+  // Cross-fade colours for a moment when the theme flips (see motion.css)
+  _crossfade() {
+    const html = document.documentElement;
+    html.classList.add("kuro-theme-switch");
+    clearTimeout(this._crossfadeTimer);
+    this._crossfadeTimer = setTimeout(() => html.classList.remove("kuro-theme-switch"), 350);
+  }
+
   _toggle(mode) {
+    this._crossfade();
     if (mode) {
       const modes = settings.get("mode");
       Object.keys(modes).forEach(x => {
@@ -54,6 +63,7 @@ class Mode {
   }
 
   _writeTheme(theme) {
+    this._crossfade();
     this._pinWrites++;
     document.documentElement.dataset.theme = theme;
   }
