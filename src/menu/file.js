@@ -191,6 +191,8 @@ module.exports = {
       type: "checkbox",
       checked: settings.get("autoLaunch"),
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("autoLaunch");
         settings.set("autoLaunch", item.checked);
         activate("auto-launch");
       },
@@ -200,6 +202,8 @@ module.exports = {
       type: "checkbox",
       checked: settings.get("launchMinimized"),
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("launchMinimized");
         settings.set("launchMinimized", item.checked);
       },
     },
@@ -217,6 +221,8 @@ module.exports = {
       type: "checkbox",
       checked: settings.get("requestExitConfirmation"),
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("requestExitConfirmation");
         settings.set("requestExitConfirmation", item.checked);
       },
     },

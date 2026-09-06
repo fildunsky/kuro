@@ -22,7 +22,7 @@ const store = new Store({
     language: "system",
     reopenLastList: true,
     requestExitConfirmation: true,
-    updateCheckPeriod: 4,
+    updateCheckPeriod: "4",
     useGlobalShortcuts: false,
     zoomFactor: 1,
   },

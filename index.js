@@ -4,11 +4,9 @@ const fs = require("fs");
 const kebabCase = require("lodash/kebabCase");
 const { is, readSheet } = require("./src/util");
 const file = require("./src/file");
-const menu = require("./src/menu");
 const { store } = require("./src/settings");
 const shortcut = require("./src/keymap");
 const time = require("./src/time");
-const tray = require("./src/tray");
 const update = require("./src/update");
 const url = require("./src/url");
 const win = require("./src/win");
@@ -69,15 +67,22 @@ function createMainWindow() {
 
   kuroWindow.loadURL(startUrl());
 
-  kuroWindow.on("close", (error) => {
-    if (!exiting) {
-      error.preventDefault();
+  kuroWindow.on("close", (event) => {
+    if (exiting) {
+      return;
+    }
 
-      if (is.darwin) {
-        app.hide();
-      } else {
-        kuroWindow.hide();
-      }
+    // Without a tray icon a hidden window has no way back: quit instead
+    if (!is.darwin && store.get("hideTray")) {
+      app.quit();
+      return;
+    }
+
+    event.preventDefault();
+    if (is.darwin) {
+      app.hide();
+    } else {
+      kuroWindow.hide();
     }
   });
 
@@ -97,6 +102,10 @@ function createMainWindow() {
 }
 
 app.whenReady().then(() => {
+  // Menus and the tray template read the UI language with t() while they are
+  // built; app.getLocale() only answers after ready, so build them here.
+  const menu = require("./src/menu");
+  const tray = require("./src/tray");
   Menu.setApplicationMenu(menu);
 
   // Language for the To-Do web app itself (its UI strings, "Add a task",
@@ -113,7 +122,13 @@ app.whenReady().then(() => {
 
   mainWindow = createMainWindow();
   if (store.get("useGlobalShortcuts")) {
-    shortcut.registerGlobal();
+    // A shortcut Electron cannot parse throws; never let that stop the
+    // window and tray from coming up
+    try {
+      shortcut.registerGlobal();
+    } catch (error) {
+      log(error);
+    }
   }
 
   if (!store.get("hideTray")) {
@@ -157,7 +172,7 @@ app.whenReady().then(() => {
     return { action: "deny" };
   });
 
-  webContents.on("crashed", log);
+  webContents.on("render-process-gone", (_, details) => log("renderer gone:", details));
 
   if (!store.get("disableAutoUpdateCheck")) {
     setInterval(() => update.auto(), time.ms(store.get("updateCheckPeriod")));

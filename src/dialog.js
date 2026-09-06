@@ -7,40 +7,42 @@ const { t } = require("./locale");
 const file = require("./file");
 const { store: settings } = require("./settings");
 
-// Shortcut reference shown from Help: [label key, accelerator].
+// Shortcut reference shown from Help: [label key, command]. The accelerator
+// comes from the platform defaults as customized in kuro.json.
 const KEY_REFERENCE = [
-  ["dialog.key.addDueDate", "Ctrl+Shift+T"],
-  ["dialog.key.addReminder", "Ctrl+Shift+E"],
-  ["dialog.key.setRepeat", "Ctrl+Shift+U"],
-  ["dialog.key.addMyDay", "Ctrl+K"],
-  ["dialog.key.completeTodo", "Ctrl+Shift+N"],
-  ["dialog.key.deleteList", "Ctrl+Shift+D"],
-  ["dialog.key.deleteTodo", "Ctrl+D"],
-  ["dialog.key.globalCreateTodo", "Ctrl+Alt+C"],
-  ["dialog.key.globalSearchTodo", "Ctrl+Alt+F"],
-  ["dialog.key.globalToggleWindow", "Ctrl+Alt+A"],
-  ["dialog.key.hideTodo", "Ctrl+Shift+H"],
-  ["dialog.key.important", "Ctrl+I"],
-  ["dialog.key.myDay", "Ctrl+M"],
-  ["dialog.key.newList", "Ctrl+L"],
-  ["dialog.key.newTodo", "Ctrl+N"],
-  ["dialog.key.planned", "Ctrl+P"],
-  ["dialog.key.renameList", "Ctrl+Y"],
-  ["dialog.key.renameTodo", "Ctrl+T"],
-  ["dialog.key.return", "Esc"],
-  ["dialog.key.setReminder", "Ctrl+Shift+E"],
-  ["dialog.key.settings", "Ctrl+,"],
-  ["dialog.key.signOut", "Ctrl+Alt+Q"],
-  ["dialog.key.tasks", "Ctrl+J"],
-  ["dialog.key.toggleCustomMode", "Ctrl+S"],
-  ["dialog.key.toggleDarkTheme", "Ctrl+H"],
-  ["dialog.key.toggleSidebar", "Ctrl+B"],
+  ["dialog.key.addDueDate", "add-due-date"],
+  ["dialog.key.setReminder", "set-reminder"],
+  ["dialog.key.setRepeat", "set-repeat"],
+  ["dialog.key.addMyDay", "add-my-day"],
+  ["dialog.key.completeTodo", "complete-todo"],
+  ["dialog.key.deleteList", "delete-list"],
+  ["dialog.key.deleteTodo", "delete-todo"],
+  ["dialog.key.globalCreateTodo", "global-create-todo"],
+  ["dialog.key.globalSearchTodo", "global-search-todo"],
+  ["dialog.key.globalToggleWindow", "global-toggle-window"],
+  ["dialog.key.hideTodo", "hide-todo"],
+  ["dialog.key.important", "important"],
+  ["dialog.key.myDay", "my-day"],
+  ["dialog.key.newList", "new-list"],
+  ["dialog.key.newTodo", "new-todo"],
+  ["dialog.key.planned", "planned"],
+  ["dialog.key.renameList", "rename-list"],
+  ["dialog.key.renameTodo", "rename-todo"],
+  ["dialog.key.return", "return"],
+  ["dialog.key.settings", "settings"],
+  ["dialog.key.signOut", "sign-out"],
+  ["dialog.key.tasks", "tasks"],
+  ["dialog.key.toggleCustomMode", "toggle-custom-mode"],
+  ["dialog.key.toggleDarkTheme", "toggle-dark-mode"],
+  ["dialog.key.toggleSidebar", "toggle-sidebar"],
 ];
 
 class Dialog {
   get _keyReferenceInfo() {
+    const { shortcutKeys } = require("./config");
     return KEY_REFERENCE
-      .map(([key, accelerator]) => `${t(key)}: ${accelerator}`)
+      .filter(([, command]) => shortcutKeys[command])
+      .map(([key, command]) => `${t(key)}: ${shortcutKeys[command]}`)
       .join("\n");
   }
 

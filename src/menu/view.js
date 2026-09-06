@@ -64,6 +64,8 @@ module.exports = {
       checked: settings.get("autoNightMode"),
       accelerator: "CmdorCtrl+Alt+N",
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("autoNightMode");
         settings.set("autoNightMode", item.checked);
         activate("auto-night-mode");
       },
@@ -73,6 +75,8 @@ module.exports = {
       type: "checkbox",
       checked: settings.get("invertNewTaskPosition"),
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("invertNewTaskPosition");
         settings.set("invertNewTaskPosition", item.checked);
         activate("invert-new-task-position");
       },
@@ -83,6 +87,8 @@ module.exports = {
       checked: settings.get("listAccents"),
       accelerator: setAcc("toggle-list-accents", "CmdorCtrl+Shift+L"),
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("listAccents");
         settings.set("listAccents", item.checked);
         activate("toggle-list-accents");
       },
@@ -92,6 +98,8 @@ module.exports = {
       type: "checkbox",
       checked: settings.get("reopenLastList"),
       click(item) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("reopenLastList");
         settings.set("reopenLastList", item.checked);
       },
     },
@@ -103,9 +111,10 @@ module.exports = {
         checked: settings.get("language") === code,
         click() {
           settings.set("language", code);
-          // Menus are built once at startup, so restart to apply
+          // Menus are built once at startup, so restart to apply; quit() (not
+          // exit) so before-quit still saves the window state
           app.relaunch();
-          app.exit(0);
+          app.quit();
         },
       })),
     },
@@ -142,6 +151,8 @@ module.exports = {
       checked: settings.get("alwaysOnTop"),
       accelerator: "CmdorCtrl+Shift+P",
       click(item, focusedWindow) {
+        // Other copies of this item (menu, tray, settings window) may be stale
+        item.checked = !settings.get("alwaysOnTop");
         settings.set("alwaysOnTop", item.checked);
         focusedWindow.setAlwaysOnTop(item.checked);
       },
@@ -184,9 +195,6 @@ module.exports = {
       click(_, focusedWindow) {
         if (focusedWindow) {
           focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
-          focusedWindow.send("window:fullscreen", {
-            state: focusedWindow.isFullScreen(),
-          });
         }
       },
     },

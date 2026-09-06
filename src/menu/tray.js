@@ -75,6 +75,8 @@ module.exports = [
     checked: settings.get("autoNightMode"),
     click(item) {
       win.appear();
+      // Other copies of this item (menu, tray, settings window) may be stale
+      item.checked = !settings.get("autoNightMode");
       settings.set("autoNightMode", item.checked);
       win.activate("auto-night-mode");
     },
@@ -86,6 +88,8 @@ module.exports = [
     checked: settings.get("invertNewTaskPosition"),
     click(item) {
       win.appear();
+      // Other copies of this item (menu, tray, settings window) may be stale
+      item.checked = !settings.get("invertNewTaskPosition");
       settings.set("invertNewTaskPosition", item.checked);
       win.activate("invert-new-task-position");
     },
@@ -96,6 +100,8 @@ module.exports = [
     checked: settings.get("listAccents"),
     click(item) {
       win.appear();
+      // Other copies of this item (menu, tray, settings window) may be stale
+      item.checked = !settings.get("listAccents");
       settings.set("listAccents", item.checked);
       win.activate("toggle-list-accents");
     },
