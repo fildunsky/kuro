@@ -2,7 +2,6 @@
 const { ipcRenderer: ipc, shell } = require("electron");
 const mode = require("./mode");
 const nav = require("./nav");
-const { store } = require("./settings");
 const startup = require("./startup");
 const dialog = require("./dialog");
 
@@ -152,11 +151,8 @@ document.addEventListener("keydown", list => nav.jumpToList(list));
 document.addEventListener("DOMContentLoaded", () => {
   nav.zoomRestore();
 
-  if (store.get("autoNightMode")) {
-    mode.autoNight();
-  }
-
   mode.restore();
+  mode.autoNight();
 });
 
 // Open links in system browser. Covers links in task notes / steps
