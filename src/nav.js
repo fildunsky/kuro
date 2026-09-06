@@ -8,11 +8,11 @@ class Nav {
     this._defaultZoomFactor = 1;
     this._listItem = ".listItem-container";
     this._lists = ".lists";
-    this._lowerZoomLimit = 0.7;
+    this._lowerZoomLimit = 0.5;
     this._myDayList = ".todayToolbar-item";
     this._selectedListClass = "active";
-    this._upperZoomLimit = 1.3;
-    this._zoomStep = 0.05;
+    this._upperZoomLimit = 3;
+    this._zoomStep = 0.1;
   }
 
   get _lastIdx() {
