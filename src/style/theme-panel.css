@@ -56,11 +56,9 @@
 .kuro-theme-pane.is-open .kuro-theme-pane__scroll {
   animation: kuro-bounce-in 0.4s var(--kuro-ease, ease-out) both;
 }
-/* To-Do resets every button to 100% x 100%; undo that inside the pane
-   (:where keeps this below the component classes in specificity) */
-:where(.kuro-theme-pane) button {
-  width: auto;
-  height: auto;
+/* To-Do styles every button (100% size, its own font/colour); injected sheets
+   lose ties with the page's own, so each control below sets its size itself */
+.kuro-theme-pane button {
   font: inherit;
   color: inherit;
   cursor: pointer;
@@ -128,6 +126,9 @@
   border-bottom: 1px solid var(--bg-separator, #E1DFDD);
 }
 .kuro-theme-pane__tab {
+  flex: 1 1 0;
+  width: auto;
+  height: auto;
   padding: 8px 12px;
   border: 0;
   background: transparent;
@@ -184,6 +185,7 @@
   transform: scale(0.94);
 }
 .kuro-theme-pane__swatch.is-light {
+  --kuro-flash-inset: var(--swatch-ring);
   box-shadow: inset 0 0 0 2px var(--swatch-ring);
 }
 .kuro-theme-pane__swatch.is-active::after,
@@ -270,6 +272,8 @@
   background: linear-gradient(160deg, #B8336A, #7A1F5C 55%, #3A0F3F);
 }
 .kuro-theme-pane__none {
+  width: 100%;
+  height: auto;
   margin-top: 24px;
   padding: 6px 16px;
   border: 1px solid var(--bg-separator, #8A8886);
@@ -289,7 +293,8 @@
   .kuro-theme-pane,
   .kuro-theme-pane__tab-indicator.is-ready,
   .kuro-theme-pane__swatch,
-  .kuro-theme-pane__scene {
+  .kuro-theme-pane__scene,
+  #kuro-theme-btn svg {
     transition: none;
   }
   .kuro-theme-pane.is-open .kuro-theme-pane__scroll,

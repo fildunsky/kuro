@@ -29,14 +29,31 @@ const CLOSE_ICON = "<svg viewBox=\"0 0 12 12\" fill=\"none\" stroke=\"currentCol
 const TABS = ["color", "scenes"];
 
 // Ring flash on the control that was just clicked (restarted if still running)
+const flashes = new WeakMap();
 const flash = node => {
+  const previous = flashes.get(node);
+  if (previous) {
+    clearTimeout(previous.timer);
+    node.removeEventListener("animationend", previous.done);
+  }
+
   node.classList.remove("kuro-highlight-flash");
   node.getBoundingClientRect();
   node.classList.add("kuro-highlight-flash");
-  const done = () => node.classList.remove("kuro-highlight-flash");
-  node.addEventListener("animationend", done, { once: true });
+  const done = event => {
+    // The active ring's own animation (on ::after) ends on this node too
+    if (event && event.animationName !== "kuro-highlight-flash") {
+      return;
+    }
+
+    node.classList.remove("kuro-highlight-flash");
+    node.removeEventListener("animationend", done);
+    flashes.delete(node);
+  };
+
+  node.addEventListener("animationend", done);
   // No animationend arrives when animations are off or the window is hidden
-  setTimeout(done, 1400);
+  flashes.set(node, { done, timer: setTimeout(done, 1400) });
 };
 
 const element = (tag, className, text) => {
@@ -89,8 +106,10 @@ class ThemePanel {
       return;
     }
 
-    // One pane at a time, like To-Do itself
-    if (nav.select(TODO_SETTINGS_PANE)) {
+    // One pane at a time, like To-Do itself. Their pane may take a moment to
+    // leave the DOM; watching for it too early would close ours at once.
+    const todoPaneOpen = Boolean(nav.select(TODO_SETTINGS_PANE));
+    if (todoPaneOpen) {
       nav.click(TODO_SETTINGS_CLOSE);
     }
 
@@ -107,7 +126,29 @@ class ThemePanel {
 
     document.addEventListener("keydown", this._onKey, true);
     document.addEventListener("mousedown", this._onMouseDown, true);
-    this._watchTodoPane();
+    if (todoPaneOpen) {
+      this._watchTodoPaneWhenGone();
+    } else {
+      this._watchTodoPane();
+    }
+  }
+
+  _watchTodoPaneWhenGone() {
+    const deadline = Date.now() + 1500;
+    const check = () => {
+      if (!this.isOpen()) {
+        return;
+      }
+
+      if (!nav.select(TODO_SETTINGS_PANE) || Date.now() >= deadline) {
+        this._watchTodoPane();
+        return;
+      }
+
+      setTimeout(check, 50);
+    };
+
+    setTimeout(check, 50);
   }
 
   close() {
@@ -126,7 +167,13 @@ class ThemePanel {
 
     const root = this._root;
     root.classList.remove("is-open");
-    const hide = () => {
+    // Only the pane's own slide counts: transitionend bubbles up from the
+    // buttons inside (hover colours) while the pane is still moving
+    const hide = event => {
+      if (event && (event.target !== root || event.propertyName !== "transform")) {
+        return;
+      }
+
       root.removeEventListener("transitionend", hide);
       if (!root.classList.contains("is-open")) {
         root.hidden = true;
@@ -134,7 +181,7 @@ class ThemePanel {
     };
 
     root.addEventListener("transitionend", hide);
-    setTimeout(hide, 300);
+    setTimeout(hide, 450);
   }
 
   _onKey = event => {
