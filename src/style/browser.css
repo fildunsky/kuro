@@ -125,7 +125,7 @@ html {
    recolours it (its variables are undefined otherwise, which used to leave
    dark text on red in the light theme). */
 html.custom-mode .button.red {
-  background: var(--bg-danger) !important;
+  background: var(--bg-danger, #A80000) !important;
   color: #FFFFFF !important;
   font-weight: bold !important;
 }

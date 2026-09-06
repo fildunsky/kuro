@@ -77,6 +77,8 @@ html[data-kuro-background="berry"] #app #main {
    keep their own colours. */
 html[data-kuro-tone="dark"] #app #main .tasksToolbar-headline,
 html[data-kuro-tone="dark"] #app #main .tasksToolbar-headline *,
+html[data-kuro-tone="dark"] #app #main .tasksToolbar-subline,
+html[data-kuro-tone="dark"] #app #main .tasksToolbar-subline *,
 html[data-kuro-tone="dark"] #app #main .listTitle,
 html[data-kuro-tone="dark"] #app #main .listTitle-icon,
 html[data-kuro-tone="dark"] #app #main .toolbarButton:not(.active):not(.selectedButton),
@@ -88,6 +90,8 @@ html[data-kuro-tone="dark"] #app #main .toolbarButton:not(.active):not(.selected
 }
 html[data-kuro-tone="light"] #app #main .tasksToolbar-headline,
 html[data-kuro-tone="light"] #app #main .tasksToolbar-headline *,
+html[data-kuro-tone="light"] #app #main .tasksToolbar-subline,
+html[data-kuro-tone="light"] #app #main .tasksToolbar-subline *,
 html[data-kuro-tone="light"] #app #main .listTitle,
 html[data-kuro-tone="light"] #app #main .listTitle-icon,
 html[data-kuro-tone="light"] #app #main .toolbarButton:not(.active):not(.selectedButton),

@@ -39,8 +39,8 @@ class Mode {
   }
 
   _toggle(mode) {
-    this._crossfade();
     if (mode) {
+      this._crossfade();
       const modes = settings.get("mode");
       Object.keys(modes).forEach(x => {
         settings.set(`mode.${x}`, x === mode ? !modes[x] : false);
@@ -123,6 +123,7 @@ class Mode {
     }
 
     const wasChecked = toggle.getAttribute("aria-checked");
+    this._crossfade();
     toggle.click();
 
     // Applying MS To-Do's theme turns the custom theme off
@@ -191,6 +192,13 @@ class Mode {
   }
 
   dark() {
+    // A manual choice ends "Follow System Theme"; otherwise the pin would flip
+    // the theme straight back
+    if (settings.get("autoNightMode")) {
+      settings.set("autoNightMode", false);
+      this._unpinTheme();
+    }
+
     this._toggle();
   }
 
