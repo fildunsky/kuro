@@ -101,6 +101,13 @@ module.exports = [
     },
   },
   {
+    label: t("tray.changeListTheme"),
+    click() {
+      win.appear();
+      win.activate("list-theme-panel");
+    },
+  },
+  {
     type: "separator",
   },
   {

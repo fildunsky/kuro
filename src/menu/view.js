@@ -110,6 +110,13 @@ module.exports = {
       })),
     },
     {
+      label: t("menu.view.changeListTheme"),
+      accelerator: setAcc("list-theme-panel", "CmdorCtrl+Shift+B"),
+      click() {
+        activate("list-theme-panel");
+      },
+    },
+    {
       type: "separator",
     },
     {

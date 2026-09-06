@@ -1,10 +1,12 @@
 "use strict";
 const { ipcRenderer: ipc, shell } = require("electron");
 const accent = require("./accent");
+const background = require("./background");
 const layout = require("./layout");
 const mode = require("./mode");
 const nav = require("./nav");
 const startup = require("./startup");
+const themePanel = require("./theme-panel");
 const dialog = require("./dialog");
 
 // The title button of the currently selected task. Clicking it opens the
@@ -152,14 +154,18 @@ document.addEventListener("keydown", list => nav.jumpToList(list));
 
 ipc.on("toggle-list-accents", () => accent.apply());
 
+ipc.on("list-theme-panel", () => themePanel.toggle());
+
 document.addEventListener("DOMContentLoaded", () => {
   nav.zoomRestore();
 
   mode.restore();
   mode.autoNight();
   accent.apply();
+  background.watch();
   layout.watchSidebar();
   layout.trackTitle();
+  themePanel.mountButton();
   layout.closeSettingsOnOutsideClick();
 });
 

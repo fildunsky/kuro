@@ -13,6 +13,7 @@ const store = new Store({
     lastWindowState: {},
     launchMinimized: false,
     listAccents: true,
+    listThemes: {},
     menuBarHidden: false,
     mode: {
       custom: false,
@@ -42,6 +43,7 @@ store.set({
   },
   launchMinimized: store.get("launchMinimized", false),
   listAccents: store.get("listAccents", true),
+  listThemes: store.get("listThemes", {}),
   menuBarHidden: store.get("menuBarHidden", false),
   mode: {
     custom: store.get("mode.custom", false),
