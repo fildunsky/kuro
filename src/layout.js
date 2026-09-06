@@ -15,6 +15,28 @@ const SETTINGS_BUTTON = "#owaSettingsButton";
 // Fluent UI renders dropdowns and callouts of the settings pane in layers
 const LAYER = ".ms-Layer";
 
+// Left edge of an element in page coordinates from the offsetParent chain:
+// unlike getBoundingClientRect() this ignores CSS transforms and transitions.
+// SVG elements have no offsetLeft; they are measured against their nearest
+// HTML ancestor instead.
+const layoutLeft = node => {
+  let element = node;
+  let left = 0;
+  while (element && !(element instanceof HTMLElement)) {
+    element = element.parentElement;
+  }
+
+  if (element !== node && element) {
+    left += node.getBoundingClientRect().left - element.getBoundingClientRect().left;
+  }
+
+  for (; element; element = element.offsetParent) {
+    left += element.offsetLeft;
+  }
+
+  return left;
+};
+
 // When the window gets narrow, MS To-Do switches to its "overlay" layout and
 // hides the sidebar behind a hamburger button. When the window grows again it
 // leaves the overlay layout but forgets to bring the sidebar back. This
@@ -44,13 +66,12 @@ class Layout {
         return;
       }
 
-      // While the search input is open the toolbar is not shifted (see
-      // browser.css), so its position is already the natural one.
-      const active = search.classList.contains("search-is-active");
+      // Layout positions only (offsetLeft chain), so transforms in flight -
+      // the shift itself mid-transition, the list-switch animation - do not
+      // feed back into the measurement.
       const current = Number.parseFloat(style.getPropertyValue("--kuro-search-shift")) || 0;
-      const natural = search.getBoundingClientRect().left - (active ? 0 : current);
-      const shift = Math.round(icon.getBoundingClientRect().left - 4 - natural);
-      if (shift !== current) {
+      const shift = Math.round(layoutLeft(icon) - 4 - layoutLeft(search));
+      if (Number.isFinite(shift) && shift !== current) {
         style.setProperty("--kuro-search-shift", `${shift}px`);
       }
     };

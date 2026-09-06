@@ -32,10 +32,15 @@
 .kuro-highlight-flash {
   animation: kuro-highlight-flash 0.6s ease-out 2;
 }
-/* Switching lists: the list column's content settles in
-   (html.kuro-list-switch is set for a moment by src/background.js) */
-html.kuro-list-switch #app #main > * {
+/* Switching lists: the task area settles in (html.kuro-list-switch is set for
+   a moment by src/background.js). The toolbar with the list title stays put:
+   the header search icon is aligned to it (src/layout.js). */
+html.kuro-list-switch #app #main > :not(.tasksToolbar) {
   animation: kuro-bounce-in 0.4s var(--kuro-ease) both;
+}
+/* The search icon glides when its anchor moves (list switch, sidebar toggle) */
+#O365_NavHeader #toDoSearchBox .searchToolbar {
+  transition: transform 0.35s var(--kuro-ease);
 }
 /* Hover and selection changes glide instead of snapping */
 #app .listItem-container,
@@ -60,7 +65,7 @@ html.kuro-theme-switch *::after {
 }
 @media (prefers-reduced-motion: reduce) {
   .kuro-highlight-flash,
-  html.kuro-list-switch #app #main > *,
+  html.kuro-list-switch #app #main > :not(.tasksToolbar),
   #root #container #app #notifications .notificationToast {
     animation: none;
   }
@@ -69,6 +74,7 @@ html.kuro-theme-switch *::after {
   #app .taskItem,
   #app .toolbarButton,
   #app .button,
+  #O365_NavHeader #toDoSearchBox .searchToolbar,
   html.kuro-theme-switch,
   html.kuro-theme-switch :not(.kuro-theme-pane, .kuro-theme-pane *, .searchToolbar, #kuro-theme-btn svg),
   html.kuro-theme-switch *::before,
