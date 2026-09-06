@@ -1,11 +1,9 @@
 "use strict";
-const { shell } = require("electron");
 const { activate } = require("./../win");
 const { is } = require("./../util");
 const { setAcc } = require("./../keymap");
 const { t } = require("./../locale");
 const dialog = require("./../dialog");
-const file = require("./../file");
 const { store: settings } = require("./../settings");
 
 module.exports = {
@@ -179,9 +177,10 @@ module.exports = {
     },
     {
       label: t("menu.file.kuroSettings"),
-      accelerator: "CmdorCtrl+.",
+      accelerator: "CmdorCtrl+Shift+,",
       click() {
-        shell.openPath(file.localConfig);
+        // Required lazily: the settings window lives in its own module.
+        require("./../settings-window").open();
       },
     },
     {

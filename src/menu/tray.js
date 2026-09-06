@@ -94,6 +94,13 @@ module.exports = [
     type: "separator",
   },
   {
+    label: t("tray.kuroSettings"),
+    click() {
+      win.appear();
+      require("./../settings-window").open();
+    },
+  },
+  {
     label: t("tray.todoSettings"),
     click() {
       win.appear();

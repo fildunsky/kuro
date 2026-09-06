@@ -40,7 +40,7 @@ store.set({
     height: store.get("lastWindowState.height"),
   },
   launchMinimized: store.get("launchMinimized", false),
-  menuBarHidden: false,
+  menuBarHidden: store.get("menuBarHidden", false),
   mode: {
     custom: store.get("mode.custom", false),
   },
