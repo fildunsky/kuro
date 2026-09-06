@@ -1,5 +1,6 @@
 "use strict";
 const { ipcRenderer: ipc, shell } = require("electron");
+const layout = require("./layout");
 const mode = require("./mode");
 const nav = require("./nav");
 const startup = require("./startup");
@@ -153,6 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   mode.restore();
   mode.autoNight();
+  layout.watchSidebar();
+  layout.trackTitle();
+  layout.closeSettingsOnOutsideClick();
 });
 
 // Open links in system browser. Covers links in task notes / steps
