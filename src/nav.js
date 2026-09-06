@@ -19,16 +19,8 @@ class Nav {
     return this._getLists().length - 1;
   }
 
-  _clickClass(x) {
-    document.querySelector(`.${x}`).click();
-  }
-
-  _clickId(x) {
-    document.getElementById(x).click();
-  }
-
   _currentIdx(lists) {
-    if (lists === null) {
+    if (!lists) {
       lists = this._getLists();
     }
 
@@ -42,15 +34,33 @@ class Nav {
   }
 
   _getLists() {
+    // Both are absent while the sidebar is collapsed (MS To-Do unmounts it).
     const myDayList = this.select(this._myDayList);
+    const lists = this.select(this._lists);
     return [
-      myDayList,
-      ...document.querySelector(this._lists).querySelectorAll(this._listItem),
+      ...(myDayList ? [myDayList] : []),
+      ...(lists ? lists.querySelectorAll(this._listItem) : []),
     ];
   }
 
   click(x) {
-    document.querySelector(x).click();
+    const element = this.select(x);
+    if (element) {
+      element.click();
+    }
+
+    return Boolean(element);
+  }
+
+  // Click an element that MS To-Do renders asynchronously (lazy-loaded detail
+  // pane, account menu, ...) once it shows up in the DOM.
+  async clickWhenReady(x, timeout) {
+    const element = await this.waitFor(x, timeout);
+    if (element) {
+      element.click();
+    }
+
+    return Boolean(element);
   }
 
   jumpToList(event) {
@@ -83,14 +93,32 @@ class Nav {
     return document.querySelector(x);
   }
 
-  selectList(idx, lists) {
-    if (idx >= 0 && idx <= this._lastIdx) {
-      if (lists === null) {
-        lists = this._getLists();
-      }
+  waitFor(x, timeout = 5000, interval = 100) {
+    return new Promise(resolve => {
+      const deadline = Date.now() + timeout;
+      const check = () => {
+        const element = this.select(x);
+        if (element || Date.now() >= deadline) {
+          return resolve(element || null);
+        }
 
-      const { id, className } = lists[idx].children[0];
-      return id ? this._clickId(id) : this._clickClass(className);
+        setTimeout(check, interval);
+      };
+
+      check();
+    });
+  }
+
+  selectList(idx, lists) {
+    if (!lists) {
+      lists = this._getLists();
+    }
+
+    if (idx >= 0 && idx < lists.length) {
+      // `li.todayToolbar-item > div.todayToolbar-inner` for My Day,
+      // `li.listItem-container > div.listItem#<listId>` for the other lists.
+      const target = lists[idx].children[0] || lists[idx];
+      target.click();
     }
   }
 

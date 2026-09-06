@@ -117,9 +117,10 @@ app.whenReady().then(() => {
     }
   });
 
-  webContents.on("new-window", (error, url) => {
-    error.preventDefault();
+  // Links that To-Do opens with window.open() go to the system browser
+  webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
+    return { action: "deny" };
   });
 
   webContents.on("crashed", log);
