@@ -3,67 +3,77 @@ const { app, clipboard, dialog, shell } = require("electron");
 const os = require("node:os");
 const { activate } = require("./win");
 const { release } = require("./url");
+const { t } = require("./locale");
 const file = require("./file");
 const { store: settings } = require("./settings");
 
+// Shortcut reference shown from Help: [label key, accelerator].
+const KEY_REFERENCE = [
+  ["dialog.key.addDueDate", "Ctrl+Shift+T"],
+  ["dialog.key.addReminder", "Ctrl+Shift+E"],
+  ["dialog.key.setRepeat", "Ctrl+Shift+U"],
+  ["dialog.key.addMyDay", "Ctrl+K"],
+  ["dialog.key.completeTodo", "Ctrl+Shift+N"],
+  ["dialog.key.deleteList", "Ctrl+Shift+D"],
+  ["dialog.key.deleteTodo", "Ctrl+D"],
+  ["dialog.key.globalCreateTodo", "Ctrl+Alt+C"],
+  ["dialog.key.globalSearchTodo", "Ctrl+Alt+F"],
+  ["dialog.key.globalToggleWindow", "Ctrl+Alt+A"],
+  ["dialog.key.hideTodo", "Ctrl+Shift+H"],
+  ["dialog.key.important", "Ctrl+I"],
+  ["dialog.key.myDay", "Ctrl+M"],
+  ["dialog.key.newList", "Ctrl+L"],
+  ["dialog.key.newTodo", "Ctrl+N"],
+  ["dialog.key.planned", "Ctrl+P"],
+  ["dialog.key.renameList", "Ctrl+Y"],
+  ["dialog.key.renameTodo", "Ctrl+T"],
+  ["dialog.key.return", "Esc"],
+  ["dialog.key.setReminder", "Ctrl+Shift+E"],
+  ["dialog.key.settings", "Ctrl+,"],
+  ["dialog.key.signOut", "Ctrl+Alt+Q"],
+  ["dialog.key.tasks", "Ctrl+J"],
+  ["dialog.key.toggleCustomMode", "Ctrl+S"],
+  ["dialog.key.toggleDarkTheme", "Ctrl+H"],
+  ["dialog.key.toggleSidebar", "Ctrl+B"],
+];
+
 class Dialog {
   get _keyReferenceInfo() {
-    return [
-      "Add due date: Ctrl+Shift+T",
-      "Add reminder: Ctrl+Shift+E",
-      "Set repeat: Ctrl+Shift+U",
-      "Add my day: Ctrl+K",
-      "Complete ToDo: Ctrl+Shift+N",
-      "Delete list: Ctrl+Shift+D",
-      "Delete ToDo: Ctrl+D",
-      "Global create ToDo: Ctrl+Alt+C",
-      "Global search ToDo: Ctrl+Alt+F",
-      "Global toggle window: Ctrl+Alt+A",
-      "Hide ToDo: Ctrl+Shift+H",
-      "Important: Ctrl+I",
-      "My day: Ctrl+M",
-      "New list: Ctrl+L",
-      "New ToDo: Ctrl+N",
-      "Planned: Ctrl+P",
-      "Rename list: Ctrl+Y",
-      "Rename ToDo: Ctrl+T",
-      "Return: Esc",
-      "Set reminder: Ctrl+Shift+E",
-      "Settings: Ctrl+,",
-      "Sign out: Ctrl+Alt+Q",
-      "Tasks: Ctrl+J",
-      "Toggle custom mode: Ctrl+S",
-      "Toggle dark theme: Ctrl+H",
-      "Toggle sidebar: Ctrl+B",
-    ].join("\n");
+    return KEY_REFERENCE
+      .map(([key, accelerator]) => `${t(key)}: ${accelerator}`)
+      .join("\n");
   }
 
   get _systemInfo() {
     return [
-      `Version: ${app.getVersion()}`,
+      `${t("dialog.info.version")}: ${app.getVersion()}`,
       `Electron: ${process.versions.electron}`,
       `Chrome: ${process.versions.chrome}`,
       `Node: ${process.versions.node}`,
       `V8: ${process.versions.v8}`,
-      `OS: ${os.type()} ${os.arch()} ${os.release()}`,
+      `${t("dialog.info.os")}: ${os.type()} ${os.arch()} ${os.release()}`,
     ].join("\n");
+  }
+
+  get _appVersion() {
+    return t("dialog.appVersion", {version: app.getVersion(), arch: os.arch()});
   }
 
   _keyRef() {
     return this._create({
-      buttons: ["Done", "Copy"],
-      detail: `Created by Greymond.\n\n${this._keyReferenceInfo}`,
-      message: `Kuro ${app.getVersion()} (${os.arch()})`,
-      title: "Shortcut Key Reference",
+      buttons: [t("dialog.button.done"), t("dialog.button.copy")],
+      detail: `${t("dialog.createdBy", {name: "Greymond"})}\n\n${this._keyReferenceInfo}`,
+      message: this._appVersion,
+      title: t("dialog.keyRef.title"),
     });
   }
 
   _about() {
     return this._create({
-      buttons: ["Done", "Copy"],
-      detail: `Created by Klaus Sinani.\n\n${this._systemInfo}`,
-      message: `Kuro ${app.getVersion()} (${os.arch()})`,
-      title: "About Kuro",
+      buttons: [t("dialog.button.done"), t("dialog.button.copy")],
+      detail: `${t("dialog.createdBy", {name: "Klaus Sinani"})}\n\n${this._systemInfo}`,
+      message: this._appVersion,
+      title: t("dialog.about.title"),
     });
   }
 
@@ -82,37 +92,37 @@ class Dialog {
 
   _exit() {
     return this._create({
-      buttons: ["Exit", "Dismiss"],
-      detail: "Are you sure you want to exit?",
-      message: "Exit Kuro",
-      title: "Kuro - Exit Confirmation",
+      buttons: [t("dialog.button.exit"), t("dialog.button.dismiss")],
+      detail: t("dialog.exit.detail"),
+      message: t("dialog.exit.message"),
+      title: t("dialog.exit.title"),
     });
   }
 
   _signOut() {
     return this._create({
-      buttons: ["Sign Out", "Dismiss"],
-      detail: "Are you sure you want to sign out?",
-      message: "Sign out of Kuro",
-      title: "Kuro - Sign Out Confirmation",
+      buttons: [t("dialog.button.signOut"), t("dialog.button.dismiss")],
+      detail: t("dialog.signOut.detail"),
+      message: t("dialog.signOut.message"),
+      title: t("dialog.signOut.title"),
     });
   }
 
   _restart() {
     return this._create({
-      buttons: ["Restart", "Dismiss"],
-      detail: "Would you like to restart now?",
-      message: "Restart Kuro to activate your new settings",
-      title: "Kuro - Restart Required",
+      buttons: [t("dialog.button.restart"), t("dialog.button.dismiss")],
+      detail: t("dialog.restart.detail"),
+      message: t("dialog.restart.message"),
+      title: t("dialog.restart.title"),
     });
   }
 
   _update(version) {
     return this._create({
-      buttons: ["Download", "Dismiss"],
-      detail: "Click Download to get it now",
-      message: `Version ${version} is now available`,
-      title: "Update Kuro",
+      buttons: [t("dialog.button.download"), t("dialog.button.dismiss")],
+      detail: t("dialog.updateAvailable.detail"),
+      message: t("dialog.updateAvailable.message", {version}),
+      title: t("dialog.updateAvailable.title"),
     });
   }
 
@@ -153,15 +163,15 @@ class Dialog {
   }
 
   updateError(content) {
-    return dialog.showErrorBox("Request to get update failed", content);
+    return dialog.showErrorBox(t("dialog.updateError.title"), content);
   }
 
   noUpdate() {
     return this._create({
-      buttons: ["Done"],
-      detail: `Kuro is running on the latest ${app.getVersion()} version`,
-      message: "There are currently no updates available",
-      title: "Kuro - No Update Available",
+      buttons: [t("dialog.button.done")],
+      detail: t("dialog.noUpdate.detail", {version: app.getVersion()}),
+      message: t("dialog.noUpdate.message"),
+      title: t("dialog.noUpdate.title"),
     });
   }
 

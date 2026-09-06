@@ -1,15 +1,17 @@
 "use strict";
+const { app } = require("electron");
 const { activate } = require("./../win");
 const { is } = require("./../util");
 const { setAcc } = require("./../keymap");
+const { t } = require("./../locale");
 const dialog = require("./../dialog");
 const { store: settings } = require("./../settings");
 
 module.exports = {
-  label: "View",
+  label: t("menu.view.label"),
   submenu: [
     {
-      label: "Reload",
+      label: t("menu.view.reload"),
       accelerator: "CmdOrCtrl+Shift+R",
       click(_, focusedWindow) {
         if (focusedWindow) {
@@ -21,24 +23,24 @@ module.exports = {
       type: "separator",
     },
     {
-      label: "Font Size Options",
+      label: t("menu.view.fontSize"),
       submenu: [
         {
-          label: "Make Text Larger",
+          label: t("menu.view.textLarger"),
           accelerator: "CmdOrCtrl+Plus",
           click() {
             activate("zoom-in");
           },
         },
         {
-          label: "Make Text Smaller",
+          label: t("menu.view.textSmaller"),
           accelerator: "CmdOrCtrl+-",
           click() {
             activate("zoom-out");
           },
         },
         {
-          label: "Reset Zoom Level",
+          label: t("menu.view.resetZoom"),
           accelerator: "CmdOrCtrl+0",
           click() {
             activate("zoom-reset");
@@ -50,14 +52,14 @@ module.exports = {
       type: "separator",
     },
     {
-      label: "Dark Theme",
+      label: t("menu.view.darkTheme"),
       accelerator: setAcc("toggle-dark-mode", "CmdorCtrl+B"),
       click() {
         activate("toggle-dark-mode");
       },
     },
     {
-      label: "Auto Night Mode",
+      label: t("menu.view.autoNightMode"),
       type: "checkbox",
       checked: settings.get("autoNightMode"),
       accelerator: "CmdorCtrl+Alt+N",
@@ -67,27 +69,40 @@ module.exports = {
       },
     },
     {
-      label: "Invert New Task Position",
+      label: t("menu.view.invertNewTaskPosition"),
       type: "checkbox",
       checked: settings.get("invertNewTaskPosition"),
       click(item) {
-        win.appear();
         settings.set("invertNewTaskPosition", item.checked);
-        win.activate("invert-new-task-position");
+        activate("invert-new-task-position");
       },
+    },
+    {
+      label: t("menu.view.language.label"),
+      submenu: ["system", "en", "ru"].map(code => ({
+        label: t(`menu.view.language.${code}`),
+        type: "radio",
+        checked: settings.get("language") === code,
+        click() {
+          settings.set("language", code);
+          // Menus are built once at startup, so restart to apply
+          app.relaunch();
+          app.exit(0);
+        },
+      })),
     },
     {
       type: "separator",
     },
     {
-      label: "Navigate to Next List",
+      label: t("menu.view.nextList"),
       accelerator: "CmdorCtrl+Tab",
       click() {
         activate("next-list");
       },
     },
     {
-      label: "Navigate to Previous List",
+      label: t("menu.view.previousList"),
       accelerator: "CmdorCtrl+Shift+Tab",
       click() {
         activate("previous-list");
@@ -97,7 +112,7 @@ module.exports = {
       type: "separator",
     },
     {
-      label: "Always on Top",
+      label: t("menu.view.alwaysOnTop"),
       type: "checkbox",
       checked: settings.get("alwaysOnTop"),
       accelerator: "CmdorCtrl+Shift+P",
@@ -107,7 +122,7 @@ module.exports = {
       },
     },
     {
-      label: "Hide Tray Icon",
+      label: t("menu.view.hideTray"),
       type: "checkbox",
       visible: !is.darwin,
       checked: settings.get("hideTray"),
@@ -120,7 +135,7 @@ module.exports = {
       type: "separator",
     },
     {
-      label: "Toggle Side Bar",
+      label: t("menu.view.toggleSidebar"),
       type: "checkbox",
       accelerator: setAcc("toggle-sidebar", "CmdorCtrl+B"),
       click() {
@@ -128,7 +143,7 @@ module.exports = {
       },
     },
     {
-      label: "Toggle Menu Bar",
+      label: t("menu.view.toggleMenuBar"),
       type: "checkbox",
       checked: !settings.get("menuBarHidden"),
       visible: !is.darwin,
@@ -139,7 +154,7 @@ module.exports = {
       },
     },
     {
-      label: "Toggle Full Screen",
+      label: t("menu.view.toggleFullScreen"),
       accelerator: is.darwin ? "Ctrl+Command+F" : "F11",
       click(_, focusedWindow) {
         if (focusedWindow) {
@@ -151,7 +166,7 @@ module.exports = {
       },
     },
     {
-      label: "Toggle Developer Tools",
+      label: t("menu.view.toggleDevTools"),
       accelerator: is.darwin ? "Alt+Command+I" : "Ctrl+Shift+I",
       click(_, focusedWindow) {
         focusedWindow.toggleDevTools();

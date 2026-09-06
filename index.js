@@ -16,6 +16,22 @@ const { customTheme } = require("./src/config");
 
 const { log } = console;
 
+// The To-Do web app picks its language bundle ("Add a task", dates, etc.) from
+// the renderer's navigator.language. That follows the process locale, which on
+// Linux comes from the LANG/LC_ALL environment and on all platforms from the
+// --lang switch. Set both from the Kuro language setting so To-Do matches the
+// menus; "system" leaves the OS locale untouched.
+{
+  const chosen = store.get("language");
+  if (chosen === "en" || chosen === "ru") {
+    const locale = chosen === "ru" ? "ru_RU.UTF-8" : "en_US.UTF-8";
+    process.env.LC_ALL = locale;
+    process.env.LANG = locale;
+    process.env.LANGUAGE = chosen;
+    app.commandLine.appendSwitch("lang", chosen === "ru" ? "ru-RU" : "en-US");
+  }
+}
+
 require("electron-debug")({ enabled: true });
 require("electron-dl")();
 require("electron-context-menu")();
@@ -71,9 +87,15 @@ function createMainWindow() {
 app.whenReady().then(() => {
   Menu.setApplicationMenu(menu);
 
-  const lang = app.getLocale();
+  // Language for the To-Do web app itself (its UI strings, "Add a task",
+  // dates). Follows the Kuro language setting; "system" keeps the OS locale.
+  const preferred = store.get("language") === "en" || store.get("language") === "ru"
+    ? store.get("language")
+    : app.getLocale();
+  const primary = preferred.includes("-") ? preferred : `${preferred}-${preferred.toUpperCase()}`;
+  const acceptLanguage = `${primary},${preferred};q=0.9,en-US;q=0.8`;
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    details.requestHeaders["Accept-Language"] = `${lang},en-US;q=0.9`;
+    details.requestHeaders["Accept-Language"] = acceptLanguage;
     callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
 

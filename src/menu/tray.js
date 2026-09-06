@@ -1,5 +1,6 @@
 "use strict";
 const { shell } = require("electron");
+const { t } = require("./../locale");
 const dialog = require("./../dialog");
 const { store: settings } = require("./../settings");
 const url = require("./../url");
@@ -7,7 +8,7 @@ const win = require("./../win");
 
 module.exports = [
   {
-    label: "Open Kuro",
+    label: t("tray.openKuro"),
     click() {
       win.toggle();
     },
@@ -16,7 +17,7 @@ module.exports = [
     type: "separator",
   },
   {
-    label: "Search",
+    label: t("tray.search"),
     click() {
       win.appear();
       win.activate("search");
@@ -26,17 +27,17 @@ module.exports = [
     type: "separator",
   },
   {
-    label: "Create",
+    label: t("tray.create"),
     submenu: [
       {
-        label: "New List",
+        label: t("tray.newList"),
         click() {
           win.appear();
           win.activate("new-list");
         },
       },
       {
-        label: "New ToDo",
+        label: t("tray.newTodo"),
         click() {
           win.appear();
           win.activate("new-todo");
@@ -45,7 +46,7 @@ module.exports = [
     ],
   },
   {
-    label: "My Day",
+    label: t("tray.myDay"),
     click() {
       win.appear();
       win.activate("my-day");
@@ -55,21 +56,21 @@ module.exports = [
     type: "separator",
   },
   {
-    label: "Dark Theme",
+    label: t("tray.darkTheme"),
     click() {
       win.appear();
       win.activate("toggle-dark-mode");
     },
   },
   {
-    label: "Custom Theme",
+    label: t("tray.customTheme"),
     click() {
       win.appear();
       win.activate("toggle-custom-mode");
     },
   },
   {
-    label: "Auto Night Mode",
+    label: t("tray.autoNightMode"),
     type: "checkbox",
     checked: settings.get("autoNightMode"),
     click(item) {
@@ -80,7 +81,7 @@ module.exports = [
   },
 
   {
-    label: "Invert New Task Position",
+    label: t("tray.invertNewTaskPosition"),
     type: "checkbox",
     checked: settings.get("invertNewTaskPosition"),
     click(item) {
@@ -93,14 +94,14 @@ module.exports = [
     type: "separator",
   },
   {
-    label: "MS ToDo Settings",
+    label: t("tray.todoSettings"),
     click() {
       win.appear();
       win.activate("settings");
     },
   },
   {
-    label: "Report Issue",
+    label: t("tray.reportIssue"),
     click() {
       shell.openExternal(url.issue);
     },
@@ -109,7 +110,7 @@ module.exports = [
     type: "separator",
   },
   {
-    label: "Exit",
+    label: t("tray.exit"),
     click() {
       dialog.confirmExit();
     },
