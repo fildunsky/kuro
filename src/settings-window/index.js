@@ -35,7 +35,7 @@ const BOOLEAN_SETTINGS = new Set([
 // Stored as strings, matching the Help menu radio items and time.ms()
 const UPDATE_PERIODS = new Set(["4", "8", "12", "24"]);
 // Read once at startup by index.js - nothing to apply live
-const RESTART_SETTINGS = new Set(["hideTray", "updateCheckPeriod"]);
+const RESTART_SETTINGS = new Set(["hideTray", "updateCheckPeriod", "disableAutoUpdateCheck"]);
 
 const THEME_KEYS = Object.keys(defaults.theme);
 const SHORTCUT_COMMANDS = Object.keys(defaults.shortcutKeys);
@@ -45,7 +45,39 @@ const PICKER_COLOR = /^#[\da-f]{6}$/i;
 // Anything CSS-ish but without the characters needed to break out of a
 // declaration (the value is interpolated into insertCSS by index.js).
 const SAFE_CSS_VALUE = /^[\w\s(),.%#-]{1,64}$/;
-const ACCELERATOR = /^[ -~]{1,64}$/;
+// Electron accelerator: modifiers joined with "+" and exactly one key. A
+// string globalShortcut.register() cannot parse throws at startup, so
+// validate it the way Electron does instead of accepting any ASCII.
+const MODIFIERS = new Set([
+  "command",
+  "cmd",
+  "control",
+  "ctrl",
+  "commandorcontrol",
+  "cmdorctrl",
+  "alt",
+  "option",
+  "altgr",
+  "shift",
+  "super",
+  "meta",
+]);
+const KEY_TOKEN = /^(?:[\da-z]|f(?:[1-9]|1\d|2[0-4])|plus|space|tab|capslock|numlock|scrolllock|backspace|delete|insert|return|enter|up|down|left|right|home|end|pageup|pagedown|escape|esc|volumeup|volumedown|volumemute|medianexttrack|mediaprevioustrack|mediastop|mediaplaypause|printscreen|num(?:[\da-z]|dec|add|sub|mult|div)|[)!@#$%^&*(:;+=<,_\->.?/~`{\]|}"'])$/i;
+
+function isAccelerator(text) {
+  if (typeof text !== "string" || text.length === 0 || text.length > 64) {
+    return false;
+  }
+
+  // "Ctrl+Shift+=" splits into an empty last part: the key is "+" itself
+  const parts = text.split("+");
+  if (parts.length > 1 && parts.at(-1) === "") {
+    parts.splice(-2, 2, "+");
+  }
+
+  const key = parts.pop();
+  return KEY_TOKEN.test(key) && parts.every(x => MODIFIERS.has(x.toLowerCase()));
+}
 
 // The settings UI is a BaseWindow hosting a WebContentsView rather than a
 // BrowserWindow on purpose: BrowserWindow.getAllWindows() lists the newest
@@ -101,8 +133,15 @@ function readLocalConfig() {
   } catch {}
 
   if (!data || typeof data !== "object" || Array.isArray(data)) {
-    // Missing or broken: let Config recreate/normalise it, as at startup
-    data = require("../config").configuration;
+    // Missing or broken: let Config recreate/normalise it, as at startup;
+    // if even that fails (unparsable file) start from the defaults
+    try {
+      data = require("../config").configuration;
+    } catch (error) {
+      log(error);
+      data = null;
+    }
+
     text = "";
   }
 
@@ -180,6 +219,7 @@ function currentSettings() {
   }
 
   result.updateCheckPeriod = String(store.get("updateCheckPeriod", "4"));
+  result.language = String(store.get("language", "system"));
   return result;
 }
 
@@ -290,9 +330,10 @@ function setSetting(key, value) {
     }
 
     store.set("language", lang);
-    // Menus and every localized string are built at startup, so restart
+    // Menus and every localized string are built at startup, so restart.
+    // quit() (not exit) so before-quit still saves the window state.
     require("electron").app.relaunch();
-    require("electron").app.exit(0);
+    require("electron").app.quit();
     return { key, value: lang, restart: true };
   }
 
@@ -375,7 +416,7 @@ function setShortcut(command, accelerator) {
   }
 
   const next = typeof accelerator === "string" ? accelerator.trim() : "";
-  if (!ACCELERATOR.test(next)) {
+  if (!isAccelerator(next)) {
     throw new Error("Invalid shortcut");
   }
 

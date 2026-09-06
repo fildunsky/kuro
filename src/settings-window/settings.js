@@ -166,17 +166,29 @@
   }
 
   // Ring flash on the control whose value was just saved
+  const flashes = new WeakMap();
   function flash(node) {
     if (!node) {
       return;
     }
 
+    const previous = flashes.get(node);
+    if (previous) {
+      clearTimeout(previous.timer);
+      node.removeEventListener("animationend", previous.done);
+    }
+
     node.classList.remove("highlight-flash");
     node.getBoundingClientRect();
     node.classList.add("highlight-flash");
-    const done = () => node.classList.remove("highlight-flash");
-    node.addEventListener("animationend", done, { once: true });
-    setTimeout(done, 1400);
+    const done = () => {
+      node.classList.remove("highlight-flash");
+      node.removeEventListener("animationend", done);
+      flashes.delete(node);
+    };
+
+    node.addEventListener("animationend", done);
+    flashes.set(node, { done, timer: setTimeout(done, 1400) });
   }
 
   function initTabs() {
@@ -324,18 +336,19 @@
       ? element("input", { type: "color", id, value: entry.hex })
       : element("input", { type: "text", id, value: entry.value, spellcheck: false });
 
+    let last = input.value;
+
     input.addEventListener("change", async () => {
       try {
         const result = await api.setThemeColor(entry.key, input.value);
         valueNode.textContent = result.value;
-        if (result.hex) {
-          input.value = result.hex;
-        }
-
+        // The picker can only show #RRGGBB; a text field keeps the exact value
+        input.value = input.type === "color" && result.hex ? result.hex : result.value;
+        last = input.value;
         saved(true);
         flash(input.closest(".color"));
       } catch (error) {
-        input.value = entry.hex || entry.value;
+        input.value = last;
         failed(error);
       }
     });
@@ -373,7 +386,6 @@
     input.addEventListener("change", async () => {
       const value = input.value.trim();
       if (!value) {
-        input.setAttribute("aria-invalid", "true");
         status(T.invalidShortcut, { error: true });
         input.value = last;
         return;
@@ -387,8 +399,10 @@
         saved(true);
         flash(input);
       } catch (error) {
+        // Show the field as invalid until the reverted (valid) value is seen
         input.setAttribute("aria-invalid", "true");
         input.value = last;
+        setTimeout(() => input.setAttribute("aria-invalid", "false"), 1500);
         failed(error);
       }
     });
