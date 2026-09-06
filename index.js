@@ -54,10 +54,20 @@ app.on("second-instance", () => {
   }
 });
 
+// Issue #111: reopen the list that was open when Kuro was last closed
+function startUrl() {
+  const last = store.get("lastURL");
+  const isList = typeof last === "string"
+    && last.startsWith(url.app)
+    && !/\/tasks\/(auth|id)\//.test(last);
+
+  return store.get("reopenLastList") && isList ? last : url.app;
+}
+
 function createMainWindow() {
   const kuroWindow = new BrowserWindow(win.defaultOpts);
 
-  kuroWindow.loadURL(url.app);
+  kuroWindow.loadURL(startUrl());
 
   kuroWindow.on("close", (error) => {
     if (!exiting) {
@@ -77,9 +87,11 @@ function createMainWindow() {
 
   kuroWindow.on("unresponsive", log);
 
-  kuroWindow.webContents.on("did-navigate-in-page", (_, url) => {
-    store.set("lastURL", url);
-  });
+  for (const event of ["did-navigate", "did-navigate-in-page"]) {
+    kuroWindow.webContents.on(event, (_, url) => {
+      store.set("lastURL", url);
+    });
+  }
 
   return kuroWindow;
 }

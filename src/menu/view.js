@@ -78,6 +78,14 @@ module.exports = {
       },
     },
     {
+      label: t("menu.view.reopenLastList"),
+      type: "checkbox",
+      checked: settings.get("reopenLastList"),
+      click(item) {
+        settings.set("reopenLastList", item.checked);
+      },
+    },
+    {
       label: t("menu.view.language.label"),
       submenu: ["system", "en", "ru"].map(code => ({
         label: t(`menu.view.language.${code}`),
